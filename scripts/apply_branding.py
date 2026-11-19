@@ -278,11 +278,11 @@ def patch_navigation(root: Path) -> None:
     menu_path=root/"app/app/src/main/res/menu/main_menu.xml"
     menu=read(menu_path)
     if "menu_item_driver_hub" not in menu:
-        menu=replace_once(menu,"    </group>",
+        menu=replace_once(menu,"</group>",
           '        <item android:icon="@drawable/icon_settings" android:id="@+id/menu_item_driver_hub" android:title="@string/driver_hub" />\n    </group>',
           "Driver Hub menu item")
     if "menu_item_steam_library" not in menu:
-        menu=replace_once(menu,"    </group>",
+        menu=replace_once(menu,"</group>",
           '        <item android:icon="@drawable/icon_shortcut" android:id="@+id/menu_item_steam_library" android:title="@string/steam_library" />\n    </group>',
           "Steam Library menu item")
     write(menu_path,menu)
