@@ -110,6 +110,22 @@ class ContainerManager { void loadContainers() {
                         }
                     }
 } }""",
+        "app/app/src/main/java/com/winlator/contentdialog/AboutDialog.java": """package com.winlator.contentdialog;
+class AboutDialog {
+    void show() {
+        tvWebpage.setText(Html.fromHtml("<a href=\\"https://www.winlator.org\\">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY));
+        String creditsAndThirdPartyAppsHTML = String.join("<br />",
+            "GLIBC Patches by (<a href=\\"https://github.com/termux-pacman/glibc-packages\\">Termux Pacman</a>)",
+            "Wine (<a href=\\"https://www.winehq.org\\">winehq.org</a>)",
+            "Box86/Box64 by <a href=\\"https://github.com/ptitSeb\\">ptitseb</a>"
+        );
+    }
+}""",
+        "app/app/src/main/res/layout/about_dialog.xml": """<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+<TextView android:id="@+id/TVWebpage" />
+<ImageView android:src="@mipmap/ic_launcher" />
+<TextView android:text="@string/credits_and_third_party_apps" />
+</LinearLayout>""",
         "app/app/src/main/java/com/winlator/MainActivity.java": """package com.winlator;
 public class MainActivity { public boolean onNavigationItemSelected(MenuItem item) { switch (item.getItemId()) {
 case R.id.menu_item_settings:
@@ -144,6 +160,13 @@ break;
     manager = (root / "app/app/src/main/java/com/winlator/container/ContainerManager.java").read_text()
     assert "if (!file.isDirectory() || !file.getName().startsWith" in manager
 
+    about = (root / "app/app/src/main/java/com/winlator/contentdialog/AboutDialog.java").read_text()
+    assert "github.com/caothainguyen511-ops/novabox" in about
+    assert "winlator.org" not in about
+    about_layout = (root / "app/app/src/main/res/layout/about_dialog.xml").read_text()
+    assert "@mipmap/novabox_icon" in about_layout and "BỘ TƯƠNG THÍCH WINDOWS CHO ANDROID" in about_layout
+    vi_strings = (root / "app/app/src/main/res/values-vi/strings.xml").read_text()
+    assert "Giới thiệu NovaBox" in vi_strings and "Trình quản lý tác vụ" in vi_strings
     manifest = root / "app/app/src/main/AndroidManifest.xml"
     ET.parse(manifest)
     manifest_text = manifest.read_text()
