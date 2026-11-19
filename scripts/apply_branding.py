@@ -457,8 +457,7 @@ def patch_startup_flow(root: Path) -> None:
     helper_path=root/"app/app/src/main/java/com/winlator/core/ProcessHelper.java"
     helper=read(helper_path)
     if "getLastExecError()" not in helper:
-        helper=helper.replace("    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();",
-            "    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();\n    private static volatile String lastExecError = \\"";",1)
+        helper=helper.replace("    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();", '    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();\n    private static volatile String lastExecError = "";', 1)
         helper=helper.replace("    public static void removeAllDebugCallbacks() {",
             "    public static String getLastExecError() { return lastExecError; }\n\n    public static void removeAllDebugCallbacks() {",1)
         old="""            if (terminationCallback != null) createWaitForThread(process, terminationCallback);
