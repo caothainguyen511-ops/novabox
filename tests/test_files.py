@@ -45,6 +45,7 @@ break;
 
     gradle = (root / "app/app/build.gradle").read_text()
     assert "com.novabox.emulator" in gradle
+    assert "NovaBox" in (root / "app/app/src/main/res/values-vi/strings.xml").read_text()
 
     manifest = root / "app/app/src/main/AndroidManifest.xml"
     ET.parse(manifest)
@@ -58,11 +59,14 @@ break;
     assert "new DriverHubFragment()" in activity
     assert "new SteamLibraryFragment()" in activity
     assert (root / "app/app/src/main/java/com/winlator/SplashActivity.java").is_file()
+    splash = (root / "app/app/src/main/java/com/winlator/SplashActivity.java").read_text()
+    assert "NOVABOX BY CAOTHAINGUYEN" in splash
     assert (root / "app/app/src/main/java/com/winlator/DriverHubFragment.java").is_file()
     assert (root / "app/app/src/main/java/com/winlator/SteamLibraryFragment.java").is_file()
 
     menu = (root / "app/app/src/main/res/menu/main_menu.xml").read_text()
     assert menu.count("menu_item_driver_hub") == 1
     assert menu.count("menu_item_steam_library") == 1
+    assert "CHƠI GAME WINDOWS TRÊN ANDROID" in (root / "app/app/src/main/res/layout/main_menu_header.xml").read_text()
 
 print("NovaBox overlay fixture test passed")
