@@ -313,6 +313,7 @@ def patch_locale(root: Path) -> None:
         source=source.replace(old,new,1)
     elif new not in source:
         raise RuntimeError("Could not locate container loading loop")
+    source=source.replace("catch (JSONException e) {}", "catch (Exception ignored) {}", 1)
     write(manager,source)
 
 def patch_startup_flow(root: Path) -> None:
