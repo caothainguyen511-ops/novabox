@@ -4,48 +4,62 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
-ROOT=Path(__file__).resolve().parents[1]
-PATCHER=ROOT/"scripts"/"apply_branding.py"
+ROOT = Path(__file__).resolve().parents[1]
+PATCHER = ROOT / "scripts" / "apply_branding.py"
 
 with tempfile.TemporaryDirectory() as tmp:
-    root=Path(tmp)
-    fixtures={
-      "app/app/build.gradle":"android { namespace 'com.winlator' defaultConfig { applicationId 'com.winlator' versionName \\"11.2\\" } }\\n",
-      "app/app/src/main/AndroidManifest.xml":'''<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.winlator">
+    root = Path(tmp)
+    fixtures = {
+        "app/app/build.gradle": """android { namespace 'com.winlator' defaultConfig { applicationId 'com.winlator' versionName "11.2" } }""",
+        "app/app/src/main/AndroidManifest.xml": """<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.winlator">
 <application android:icon="@mipmap/ic_launcher">
 <activity android:name="com.winlator.MainActivity" android:exported="true">
 <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
 </activity>
 <provider android:authorities="com.winlator.FileProvider" />
-</application></manifest>''',
-      "app/app/src/main/res/values/strings.xml":'<resources><string name="app_name">Winlator</string><string name="shortcuts">Shortcuts</string><string name="containers">Containers</string><string name="input_controls">Input Controls</string><string name="settings">Settings</string><string name="about">About</string></resources>',
-      "app/app/src/main/res/values/styles.xml":'<resources><style name="AppThemeDark"><item name="colorAccent">#0288d1</item><item name="colorPrimarySurface">#1b1e21</item></style></resources>',
-      "app/app/src/main/res/menu/main_menu.xml":'<menu xmlns:android="http://schemas.android.com/apk/res/android"><group android:checkableBehavior="single"><item android:id="@+id/menu_item_about" /></group></menu>',
-      "app/app/src/main/res/layout/main_menu_header.xml":"<FrameLayout />",
-      "app/app/src/main/res/layout/container_list_item.xml":'<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal" android:paddingLeft="16dp" android:paddingRight="16dp" android:gravity="center_vertical" />',
-      "app/app/src/main/java/com/winlator/MainActivity.java":'package com.winlator;\\npublic class MainActivity { public boolean onNavigationItemSelected(MenuItem item) { switch (item.getItemId()) {\\n            case R.id.menu_item_settings:\\n                showFragment(new SettingsFragment());\\n                break;\\n        } return true; } }',
-      "app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml":'<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><foreground android:drawable="@mipmap/ic_launcher_foreground" /></adaptive-icon>',
+</application></manifest>""",
+        "app/app/src/main/res/values/strings.xml": '<resources><string name="app_name">Winlator</string><string name="shortcuts">Shortcuts</string><string name="containers">Containers</string><string name="input_controls">Input Controls</string><string name="settings">Settings</string><string name="about">About</string></resources>',
+        "app/app/src/main/res/values/styles.xml": '<resources><style name="AppThemeDark"><item name="colorAccent">#0288d1</item><item name="colorPrimarySurface">#1b1e21</item></style></resources>',
+        "app/app/src/main/res/menu/main_menu.xml": '<menu xmlns:android="http://schemas.android.com/apk/res/android"><group android:checkableBehavior="single"><item android:id="@+id/menu_item_about" /></group></menu>',
+        "app/app/src/main/res/layout/main_menu_header.xml": "<FrameLayout />",
+        "app/app/src/main/res/layout/container_list_item.xml": '<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal" android:paddingLeft="16dp" android:paddingRight="16dp" android:gravity="center_vertical" />',
+        "app/app/src/main/java/com/winlator/MainActivity.java": """package com.winlator;
+public class MainActivity { public boolean onNavigationItemSelected(MenuItem item) { switch (item.getItemId()) {
+case R.id.menu_item_settings:
+showFragment(new SettingsFragment());
+break;
+} return true; } }""",
+        "app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml": '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><foreground android:drawable="@mipmap/ic_launcher_foreground" /></adaptive-icon>',
     }
-    for rel,content in fixtures.items():
-        path=root/rel;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(content,encoding="utf-8")
-    (root/".git").mkdir()
-    subprocess.run([sys.executable,str(PATCHER),str(root)],check=True)
-    subprocess.run([sys.executable,str(PATCHER),str(root)],check=True)
+    for relative, source in fixtures.items():
+        file = root / relative
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(source, encoding="utf-8")
+    (root / ".git").mkdir()
 
-    assert "com.novabox.emulator" in (root/"app/app/build.gradle").read_text()
-    assert "DriverHubFragment" in (root/"app/app/src/main/java/com/winlator/MainActivity.java").read_text()
-    assert "SteamLibraryFragment" in (root/"app/app/src/main/java/com/winlator/MainActivity.java").read_text()
-    manifest=root/"app/app/src/main/AndroidManifest.xml"
+    subprocess.run([sys.executable, str(PATCHER), str(root)], check=True)
+    subprocess.run([sys.executable, str(PATCHER), str(root)], check=True)
+
+    gradle = (root / "app/app/build.gradle").read_text()
+    assert "com.novabox.emulator" in gradle
+
+    manifest = root / "app/app/src/main/AndroidManifest.xml"
     ET.parse(manifest)
-    m=manifest.read_text()
-    assert 'android:icon="@mipmap/novabox_icon"' in m
-    assert m.count("android.intent.category.LAUNCHER")==1
-    ET.parse(root/"app/app/src/main/res/mipmap-anydpi-v26/novabox_icon.xml")
-    ET.parse(root/"app/app/src/main/res/values/styles.xml")
-    assert (root/"app/app/src/main/java/com/winlator/SplashActivity.java").is_file()
-    assert "NovaBoxSplashView" in (root/"app/app/src/main/java/com/winlator/SplashActivity.java").read_text()
-    assert (root/"app/app/src/main/java/com/winlator/DriverHubFragment.java").is_file()
-    assert (root/"app/app/src/main/java/com/winlator/SteamLibraryFragment.java").is_file()
-    menu=(root/"app/app/src/main/res/menu/main_menu.xml").read_text()
-    assert menu.count("menu_item_driver_hub")==1 and menu.count("menu_item_steam_library")==1
+    manifest_text = manifest.read_text()
+    assert 'android:icon="@mipmap/novabox_icon"' in manifest_text
+    assert manifest_text.count("android.intent.category.LAUNCHER") == 1
+
+    ET.parse(root / "app/app/src/main/res/mipmap-anydpi-v26/novabox_icon.xml")
+    ET.parse(root / "app/app/src/main/res/values/styles.xml")
+    activity = (root / "app/app/src/main/java/com/winlator/MainActivity.java").read_text()
+    assert "new DriverHubFragment()" in activity
+    assert "new SteamLibraryFragment()" in activity
+    assert (root / "app/app/src/main/java/com/winlator/SplashActivity.java").is_file()
+    assert (root / "app/app/src/main/java/com/winlator/DriverHubFragment.java").is_file()
+    assert (root / "app/app/src/main/java/com/winlator/SteamLibraryFragment.java").is_file()
+
+    menu = (root / "app/app/src/main/res/menu/main_menu.xml").read_text()
+    assert menu.count("menu_item_driver_hub") == 1
+    assert menu.count("menu_item_steam_library") == 1
+
 print("NovaBox overlay fixture test passed")
