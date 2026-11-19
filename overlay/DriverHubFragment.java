@@ -69,24 +69,24 @@ public class DriverHubFragment extends Fragment {
         page.setPadding(dp(c,18),dp(c,20),dp(c,18),dp(c,28));
         scroll.addView(page,new ScrollView.LayoutParams(-1,-2));
 
-        page.addView(text(c,"NOVA  /  WINDOWS COMPATIBILITY",12,CYAN,true));
-        page.addView(text(c,"Trung tâm Driver",28,TEXT,true),params(c,-1,-2,0,4,0,2));
-        page.addView(text(c,"Nhận diện GPU, cài component và chọn cấu hình phù hợp cho từng môi trường.",14,MUTED,false));
+        page.addView(text(c,"NOVABOX  /  TƯƠNG THÍCH WINDOWS",12,CYAN,true));
+        page.addView(text(c,"Trung tâm đồ họa",28,TEXT,true),params(c,-1,-2,0,4,0,2));
+        page.addView(text(c,"Nhận diện GPU, cài thành phần và chọn cấu hình phù hợp cho từng môi trường Windows.",14,MUTED,false));
 
         LinearLayout gpu=card(c);
         page.addView(gpu,params(c,-1,-2,0,18,0,0));
-        gpu.addView(text(c,"THIẾT BỊ CỦA BẠN",11,CYAN,true));
+        gpu.addView(text(c,"THÔNG TIN THIẾT BỊ",11,CYAN,true));
         gpuInfo=text(c,"Đang nhận diện GPU…",15,TEXT,true);
         gpu.addView(gpuInfo,params(c,-1,-2,0,8,0,0));
         recommendation=text(c,"Đang kiểm tra cấu hình đề xuất…",13,MUTED,false);
         gpu.addView(recommendation,params(c,-1,-2,0,6,0,0));
 
-        addSection(page,c,"1. Driver đồ họa","Turnip dành cho Adreno tương thích. Vortek là backend Vulkan được engine tích hợp cho một số GPU khác; Gladio, Zink và VirGL là các backend OpenGL. Không cài Turnip lên Mali.");
-        addSection(page,c,"2. DirectX / DX Wrapper","DXVK dành cho Direct3D 9/10/11. VKD3D dành riêng cho Direct3D 12. WineD3D là lựa chọn dự phòng. D7VK và CNC DDraw phục vụ một số game DirectDraw cũ.");
-        addSection(page,c,"3. Cài component","Nút tải bên dưới dùng catalog component của upstream Winlator. Sau đó chọn phiên bản trong cấu hình môi trường Windows; không cài tất cả phiên bản cùng lúc.");
+        addSection(page,c,"1. Trình điều khiển đồ họa","Turnip dành cho Adreno tương thích. Vortek là backend Vulkan được engine tích hợp cho một số GPU khác; Gladio, Zink và VirGL là các backend OpenGL. Không cài Turnip lên Mali.");
+        addSection(page,c,"2. Bộ chuyển đổi DirectX","DXVK dành cho Direct3D 9/10/11. VKD3D dành riêng cho Direct3D 12. WineD3D là lựa chọn dự phòng. D7VK và CNC DDraw phục vụ một số game DirectDraw cũ.");
+        addSection(page,c,"3. Cài thành phần","Nút tải bên dưới dùng catalog component của upstream Winlator. Sau đó chọn phiên bản trong cấu hình môi trường Windows; không cài tất cả phiên bản cùng lúc.");
 
         addInstaller(page,c,GeneralComponents.Type.TURNIP,"Turnip · Vulkan / Adreno","Mesa Vulkan driver cho GPU Adreno. Không dùng làm driver Mali.",DefaultVersion.TURNIP);
-        addInstaller(page,c,GeneralComponents.Type.ADRENOTOOLS_DRIVER,"Driver Adreno bổ sung","Nhập gói AdrenoTools ZIP có manifest từ nguồn đáng tin cậy, đúng GPU và Android.", "System");
+        addInstaller(page,c,GeneralComponents.Type.ADRENOTOOLS_DRIVER,"Trình điều khiển Adreno bổ sung","Nhập gói AdrenoTools ZIP có manifest từ nguồn đáng tin cậy, đúng GPU và Android.", "System");
         addInstaller(page,c,GeneralComponents.Type.DXVK,"DXVK · Direct3D 9 / 10 / 11","Dịch Direct3D 9–11 sang Vulkan. Chỉ bật khi Vulkan driver tương thích.",DefaultVersion.MINOR_DXVK);
         addInstaller(page,c,GeneralComponents.Type.VKD3D,"VKD3D · Direct3D 12","Dành cho game Direct3D 12; độc lập với DXVK.",DefaultVersion.VKD3D);
         addInstaller(page,c,GeneralComponents.Type.WINED3D,"WineD3D · Fallback","Lựa chọn thay thế khi DXVK/Vulkan gặp lỗi tương thích.",DefaultVersion.WINED3D);
@@ -94,19 +94,19 @@ public class DriverHubFragment extends Fragment {
 
         LinearLayout backends=card(c);
         page.addView(backends,params(c,-1,-2,0,12,0,0));
-        backends.addView(text(c,"BACKEND ĐƯỢC TÍCH HỢP",11,CYAN,true));
+        backends.addView(text(c,"BỘ MÁY ĐỒ HỌA TÍCH HỢP",11,CYAN,true));
         backends.addView(text(c,"Vulkan: Turnip · Vortek\nOpenGL: Gladio · Zink · VirGL\nLegacy: D7VK · CNC DDraw",14,TEXT,false),params(c,-1,-2,0,8,0,0));
         backends.addView(text(c,"Các backend trên được lấy từ engine và module upstream. Driver Mali độc quyền vẫn do nhà sản xuất thiết bị cung cấp.",12,MUTED,false),params(c,-1,-2,0,8,0,0));
 
         LinearLayout warning=card(c);
         page.addView(warning,params(c,-1,-2,0,12,0,0));
-        warning.addView(text(c,"LƯU Ý ỔN ĐỊNH",11,Color.rgb(251,191,36),true));
+        warning.addView(text(c,"MẸO TĂNG ĐỘ ỔN ĐỊNH",11,Color.rgb(251,191,36),true));
         warning.addView(text(c,"• Mỗi game nên có môi trường riêng.\n• Chỉ đổi một thiết lập mỗi lần.\n• Nếu game không mở, thử WineD3D hoặc quay về cấu hình đã chạy ổn.\n• Theo dõi nhiệt độ và RAM.\n• Không thay driver hệ thống bằng gói không rõ nguồn.",13,MUTED,false),params(c,-1,-2,0,8,0,0));
 
         Button create=actionButton(c,"＋  Tạo môi trường Windows");
         page.addView(create,params(c,-1,50,0,18,0,0));
         create.setOnClickListener(v->openContainerCreator());
-        Button environments=secondaryButton(c,"Mở môi trường đã tạo");
+        Button environments=secondaryButton(c,"Mở môi trường Windows");
         page.addView(environments,params(c,-1,48,0,10,0,0));
         environments.setOnClickListener(v->{if(getActivity() instanceof MainActivity)((MainActivity)getActivity()).showFragment(new ContainersFragment());});
         Button library=secondaryButton(c,"Mở thư viện ứng dụng");
@@ -128,9 +128,9 @@ public class DriverHubFragment extends Fragment {
         Spinner versions=new Spinner(c);item.addView(versions,params(c,-1,44,0,8,0,0));
         LinearLayout controls=new LinearLayout(c);controls.setOrientation(LinearLayout.HORIZONTAL);
         controls.setGravity(Gravity.CENTER_VERTICAL);item.addView(controls,params(c,-1,44,0,8,0,0));
-        Button install=smallButton(c,type==GeneralComponents.Type.ADRENOTOOLS_DRIVER?"Nhập driver ZIP":"Tải gói");
+        Button install=smallButton(c,type==GeneralComponents.Type.ADRENOTOOLS_DRIVER?"Nhập gói trình điều khiển":"Tải thành phần");
         install.setTag("install");controls.addView(install,new LinearLayout.LayoutParams(0,dp(c,42),1));
-        Button remove=smallButton(c,"Gỡ bản đã tải");remove.setTag("remove");
+        Button remove=smallButton(c,"Gỡ phiên bản đã tải");remove.setTag("remove");
         LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(0,dp(c,42),1);rp.leftMargin=dp(c,8);controls.addView(remove,rp);
         GeneralComponents.initViews(type,controls,versions,null,defaultVersion);
     }
