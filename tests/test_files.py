@@ -36,6 +36,9 @@ break;
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(source, encoding="utf-8")
     (root / ".git").mkdir()
+    brand = root / "branding" / "novabox_launcher_foreground.xml"
+    brand.parent.mkdir(parents=True, exist_ok=True)
+    brand.write_text('''<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108"><path android:fillColor="#8B5CF6" android:pathData="M20,23 L43,23 L69,55 L69,23 L88,23 L88,85 L65,85 L39,53 L39,85 L20,85 Z" /></vector>''', encoding="utf-8")
 
     subprocess.run([sys.executable, str(PATCHER), str(root)], check=True)
     subprocess.run([sys.executable, str(PATCHER), str(root)], check=True)
