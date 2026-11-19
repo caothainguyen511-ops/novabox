@@ -1,0 +1,9 @@
+/vendor/
+*.apk
+*.aab
+.gradle/
+**/build/
+local.properties
+.idea/
+__pycache__/
+*.pyc
