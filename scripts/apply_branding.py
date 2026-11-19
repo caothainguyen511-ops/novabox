@@ -315,6 +315,148 @@ def patch_locale(root: Path) -> None:
         raise RuntimeError("Could not locate container loading loop")
     write(manager,source)
 
+def patch_startup_flow(root: Path) -> None:
+    activity_path=root/"app/app/src/main/java/com/winlator/XServerDisplayActivity.java"
+    source=read(activity_path)
+    for imp in ("import android.util.Log;", "import android.os.Handler;", "import android.os.Looper;",
+                "import androidx.appcompat.app.AlertDialog;"):
+        if imp not in source:
+            anchor="import android.app.Activity;"
+            if imp.startswith("import androidx."):
+                anchor="import androidx.appcompat.app.AppCompatActivity;"
+            elif imp.startswith("import android.os."):
+                anchor="import android.os.Bundle;"
+            source=source.replace(anchor,anchor+"\\n"+imp,1)
+
+    field_anchor="    private String screenEffectProfile;"
+    fields="""    private String screenEffectProfile;
+    private final Handler novaBoxStartupHandler = new Handler(Looper.getMainLooper());
+    private Runnable novaBoxStartupTimeout;
+    private boolean novaBoxStartupWindowReady = false;
+"""
+    if "novaBoxStartupTimeout" not in source:
+        source=replace_once(source,field_anchor,fields,"NovaBox startup diagnostic fields")
+
+    flag_anchor="        final boolean[] flags = {false, shortcut != null || getIntent().hasExtra(\\"exec_path\\")};"
+    flag_replacement=flag_anchor+"""
+        novaBoxStartupTimeout = () -> {
+            if (!novaBoxStartupWindowReady && !isFinishing() && !isDestroyed()) {
+                preloaderDialog.close();
+                new AlertDialog.Builder(this)
+                    .setTitle("NovaBox")
+                    .setMessage("Wine chưa tạo được cửa sổ Windows sau 120 giây. Hãy kiểm tra tệp hệ thống, phiên bản Box64 và trình điều khiển đồ họa của môi trường. Nếu đây là lần chạy đầu tiên, hãy bảo đảm bộ dữ liệu Windows đã cài đặt đầy đủ.")
+                    .setPositiveButton("Đóng", (dialog, which) -> finish())
+                    .setCancelable(false)
+                    .show();
+            }
+        };
+        novaBoxStartupHandler.postDelayed(novaBoxStartupTimeout, 120000L);"""
+    if "novaBoxStartupHandler.postDelayed" not in source:
+        source=replace_once(source,flag_anchor,flag_replacement,"NovaBox startup timeout")
+
+    map_anchor="""                    preloaderDialog.closeOnUiThread();
+                    flags[0] = true;"""
+    map_replacement="""                    novaBoxStartupWindowReady = true;
+                    if (novaBoxStartupTimeout != null) novaBoxStartupHandler.removeCallbacks(novaBoxStartupTimeout);
+                    preloaderDialog.closeOnUiThread();
+                    flags[0] = true;"""
+    if "novaBoxStartupWindowReady = true" not in source:
+        source=replace_once(source,map_anchor,map_replacement,"first Wine window startup completion")
+
+    thread_old="""        Executors.newSingleThreadExecutor().execute(() -> {
+            if (!isGenerateWineprefix()) {
+                setupWineSystemFiles();
+                extractGraphicsDriverFiles();
+                changeWineAudioDriver();
+            }
+            setupXEnvironment();
+        });"""
+    thread_new="""        Executors.newSingleThreadExecutor().execute(() -> {
+            final String[] startupStage = {"Chuẩn bị tệp hệ thống Windows"};
+            try {
+                if (!isGenerateWineprefix()) {
+                    startupStage[0] = "Chuẩn bị tệp hệ thống Windows";
+                    setupWineSystemFiles();
+                    startupStage[0] = "Nạp tệp trình điều khiển đồ họa";
+                    extractGraphicsDriverFiles();
+                    startupStage[0] = "Thiết lập âm thanh";
+                    changeWineAudioDriver();
+                }
+                startupStage[0] = "Khởi chạy bộ máy Wine và Box64";
+                setupXEnvironment();
+            }
+            catch (Throwable error) {
+                final String failedStage = startupStage[0];
+                final String reason = error.getClass().getSimpleName() +
+                    (error.getMessage() != null ? ": " + error.getMessage() : "");
+                Log.e("NovaBoxStartup", "Startup failed at " + failedStage, error);
+                novaBoxStartupHandler.removeCallbacks(novaBoxStartupTimeout);
+                runOnUiThread(() -> {
+                    preloaderDialog.close();
+                    if (!isFinishing() && !isDestroyed()) {
+                        new AlertDialog.Builder(this)
+                            .setTitle("Không thể khởi động NovaBox")
+                            .setMessage("Bước gặp lỗi: " + failedStage + "\\n\\n" + reason +
+                                "\\n\\nHãy kiểm tra môi trường Windows, dung lượng trống và cấu hình driver.")
+                            .setPositiveButton("Đóng", (dialog, which) -> finish())
+                            .setCancelable(false)
+                            .show();
+                    }
+                });
+            }
+        });"""
+    if "final String[] startupStage" not in source:
+        source=replace_once(source,thread_old,thread_new,"guarded Windows startup worker")
+
+    destroy_anchor="""    protected void onDestroy() {
+        winHandler.stop();"""
+    destroy_new="""    protected void onDestroy() {
+        if (novaBoxStartupTimeout != null) novaBoxStartupHandler.removeCallbacks(novaBoxStartupTimeout);
+        winHandler.stop();"""
+    if "removeCallbacks(novaBoxStartupTimeout)" not in source[source.find("protected void onDestroy"):]:
+        source=replace_once(source,destroy_anchor,destroy_new,"startup timeout cleanup")
+
+    root_anchor="""            container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
+            containerManager.activateContainer(container);"""
+    root_new="""            container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
+            if (container == null) {
+                new AlertDialog.Builder(this).setTitle("NovaBox")
+                    .setMessage("Không tìm thấy môi trường Windows đã chọn. Hãy quay lại thư viện và chọn lại môi trường.")
+                    .setPositiveButton("Đóng", (dialog, which) -> finish()).show();
+                return;
+            }
+            containerManager.activateContainer(container);"""
+    if "Không tìm thấy môi trường Windows đã chọn" not in source:
+        source=replace_once(source,root_anchor,root_new,"missing container guard")
+
+    launch_anchor="        environment.startEnvironmentComponents();"
+    launch_new=launch_anchor+"""
+        if (container != null && guestProgramLauncherComponent.getProcessId() <= 0) {
+            throw new IllegalStateException("Không tạo được tiến trình Box64/Wine. Tệp Box64 hoặc bộ dữ liệu hệ thống có thể bị thiếu.");
+        }"""
+    if "guestProgramLauncherComponent.getProcessId()" not in source:
+        source=replace_once(source,launch_anchor,launch_new,"guest process launch validation")
+
+    write(activity_path,source)
+
+    guest_path=root/"app/app/src/main/java/com/winlator/xenvironment/components/GuestProgramLauncherComponent.java"
+    guest=read(guest_path)
+    if "public int getProcessId()" not in guest:
+        anchor="""    public void setGuestExecutable(String guestExecutable) {
+        this.guestExecutable = guestExecutable;
+    }"""
+        addition=anchor+"""
+
+    public int getProcessId() {
+        return pid;
+    }"""
+        guest=replace_once(guest,anchor,addition,"guest process id accessor")
+    write(guest_path,guest)
+
+    vi=root/"app/app/src/main/res/values-vi/strings.xml"
+    # Existing strings are preserved; this message is also used in the native startup dialog.
+    if not vi.exists():
+        raise RuntimeError("Vietnamese resources were not created before startup patch")
 def patch_navigation(root: Path) -> None:
     menu_path=root/"app/app/src/main/res/menu/main_menu.xml"
     menu=read(menu_path)
@@ -361,7 +503,7 @@ def main() -> int:
     root=Path(sys.argv[1]).resolve()
     if not (root/".git").exists(): raise SystemExit(f"Not a Git checkout: {root}")
     patch_gradle(root); patch_manifest(root); patch_resources(root); patch_locale(root)
-    apply_layouts(root); patch_navigation(root)
+    apply_layouts(root); patch_startup_flow(root); patch_navigation(root)
     print(f"NovaBox overlay applied to {root}; upstream notices are retained.")
     return 0
 
