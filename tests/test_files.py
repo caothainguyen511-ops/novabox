@@ -90,11 +90,11 @@ class RootFS {
         "app/app/src/main/java/com/winlator/xenvironment/RootFSInstaller.java": """package com.winlator.xenvironment;
 class RootFSInstaller {
     void install() {
-        if (success) {
-            rootFS.createRFSVersionFile(LATEST_VERSION);
-            resetContainerRFSVersions(activity);
-        }
-        else AppUtils.showToast(activity, R.string.unable_to_install_system_files);
+            if (success) {
+                rootFS.createRFSVersionFile(LATEST_VERSION);
+                resetContainerRFSVersions(activity);
+            }
+            else AppUtils.showToast(activity, R.string.unable_to_install_system_files);
     }
 }""",
         "app/app/src/main/java/com/winlator/container/ContainerManager.java": """package com.winlator.container;
