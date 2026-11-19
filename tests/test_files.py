@@ -65,6 +65,20 @@ class GuestProgramLauncherComponent {
         this.guestExecutable = guestExecutable;
     }
 }""",
+        "app/app/src/main/java/com/winlator/core/ProcessHelper.java": """package com.winlator.core;
+import java.util.ArrayList;
+class ProcessHelper {
+    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();
+    public static void removeAllDebugCallbacks() {
+    }
+    static int exec(String command, Callback<Integer> terminationCallback) {
+        try {
+            if (terminationCallback != null) createWaitForThread(process, terminationCallback);
+        }
+        catch (Exception e) {}
+        return pid;
+    }
+}""",
         "app/app/src/main/java/com/winlator/core/LocaleHelper.java": 'package com.winlator.core; public class LocaleHelper { private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU"}; void f(SharedPreferences preferences) { int index = preferences.getInt("lc_index", -1); } }',
         "app/app/src/main/java/com/winlator/container/ContainerManager.java": """package com.winlator.container;
 class ContainerManager { void loadContainers() {
@@ -134,5 +148,7 @@ break;
     assert "guestProgramLauncherComponent.getProcessId()" in startup
     guest = (root / "app/app/src/main/java/com/winlator/xenvironment/components/GuestProgramLauncherComponent.java").read_text()
     assert "public int getProcessId()" in guest
+    helper = (root / "app/app/src/main/java/com/winlator/core/ProcessHelper.java").read_text()
+    assert "getLastExecError()" in helper and "NovaBoxProcess" in helper
 
 print("NovaBox overlay fixture test passed")
