@@ -51,6 +51,10 @@ class XServerDisplayActivity extends AppCompatActivity {
     protected void onDestroy() {
         winHandler.stop();
     }
+    void openContainer() {
+            container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
+            containerManager.activateContainer(container);
+    }
     void setupXEnvironment() {
         environment.startEnvironmentComponents();
     }
