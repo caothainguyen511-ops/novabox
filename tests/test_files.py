@@ -113,11 +113,11 @@ class ContainerManager { void loadContainers() {
         "app/app/src/main/java/com/winlator/contentdialog/AboutDialog.java": """package com.winlator.contentdialog;
 class AboutDialog {
     void show() {
-        tvWebpage.setText(Html.fromHtml("<a href=\\"https://www.winlator.org\\">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY));
+        tvWebpage.setText(Html.fromHtml("<a href="https://www.winlator.org">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY));
         String creditsAndThirdPartyAppsHTML = String.join("<br />",
-            "GLIBC Patches by (<a href=\\"https://github.com/termux-pacman/glibc-packages\\">Termux Pacman</a>)",
-            "Wine (<a href=\\"https://www.winehq.org\\">winehq.org</a>)",
-            "Box86/Box64 by <a href=\\"https://github.com/ptitSeb\\">ptitseb</a>"
+            "GLIBC Patches by (<a href="https://github.com/termux-pacman/glibc-packages">Termux Pacman</a>)",
+            "Wine (<a href="https://www.winehq.org">winehq.org</a>)",
+            "Box86/Box64 by <a href="https://github.com/ptitSeb">ptitseb</a>"
         );
     }
 }""",
