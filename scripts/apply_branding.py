@@ -274,6 +274,62 @@ def patch_resources(root: Path) -> None:
 </resources>''')
     write(styles,t)
 
+def patch_about_dialog(root: Path) -> None:
+    dialog_path=root/"app/app/src/main/java/com/winlator/contentdialog/AboutDialog.java"
+    source=read(dialog_path)
+    source=source.replace(
+        'Html.fromHtml("<a href=\"https://www.winlator.org\">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY)',
+        'Html.fromHtml("<a href=\"https://github.com/caothainguyen511-ops/novabox\">Mã nguồn NovaBox</a>", Html.FROM_HTML_MODE_LEGACY)')
+    source=source.replace(
+        'String creditsAndThirdPartyAppsHTML = String.join("<br />",',
+        'String creditsAndThirdPartyAppsHTML = String.join("<br />",')
+    source=source.replace('"GLIBC Patches by ("', '"Bản vá GLIBC do ("')
+    source=source.replace('"Wine ("', '"Wine ("')
+    source=source.replace('"Box86/Box64 by <a href=\"https://github.com/ptitSeb\">ptitseb</a>"',
+                          '"Box86/Box64 do <a href=\"https://github.com/ptitSeb\">ptitSeb</a> phát triển"')
+    source=source.replace('"Mesa (Turnip/Zink/VirGL) ("', '"Mesa (Turnip/Zink/VirGL) ("')
+    source=source.replace('"DXVK ("', '"DXVK ("')
+    source=source.replace('"VKD3D ("', '"VKD3D ("')
+    source=source.replace('"CNC DDraw ("', '"CNC DDraw ("')
+    write(dialog_path,source)
+
+    layout=root/"app/app/src/main/res/layout/about_dialog.xml"
+    xml=read(layout)
+    xml=xml.replace('android:src="@mipmap/ic_launcher"', 'android:src="@mipmap/novabox_icon"')
+    xml=xml.replace('android:text="@string/credits_and_third_party_apps"',
+                    'android:text="@string/credits_and_third_party_apps"')
+    if "BỘ TƯƠNG THÍCH WINDOWS CHO ANDROID" not in xml:
+        xml=xml.replace('android:id="@+id/TVWebpage"',
+            'android:id="@+id/TVWebpage"')
+        anchor='''                <TextView
+                    android:id="@+id/TVWebpage"'''
+        addition='''                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BỘ TƯƠNG THÍCH WINDOWS CHO ANDROID"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorSecondaryText" />
+
+                <TextView
+                    android:id="@+id/TVWebpage"'''
+        xml=replace_once(xml,anchor,addition,"NovaBox about subtitle")
+    write(layout,xml)
+
+    values=root/"app/app/src/main/res/values/strings.xml"
+    strings=read(values)
+    replacements={
+        "about":"Giới thiệu NovaBox",
+        "credits_and_third_party_apps":"Công nhận và thư viện bên thứ ba",
+        "version":"Phiên bản",
+        "app_name":"NovaBox"
+    }
+    for key,value in replacements.items():
+        pattern=rf'(<string\s+name="{re.escape(key)}"[^>]*>).*?(</string>)'
+        strings,count=re.subn(pattern,lambda m:m.group(1)+value+m.group(2),strings,count=1,flags=re.S)
+        if not count: raise RuntimeError(f"Missing about string {key}")
+    write(values,strings)
+
 def patch_locale(root: Path) -> None:
     path=root/"app/app/src/main/java/com/winlator/core/LocaleHelper.java"
     text=read(path)
@@ -576,7 +632,7 @@ def main() -> int:
     if len(sys.argv)!=2: raise SystemExit("Usage: apply_branding.py /path/to/winlator")
     root=Path(sys.argv[1]).resolve()
     if not (root/".git").exists(): raise SystemExit(f"Not a Git checkout: {root}")
-    patch_gradle(root); patch_manifest(root); patch_resources(root); patch_locale(root); patch_rootfs_validation(root)
+    patch_gradle(root); patch_manifest(root); patch_resources(root); patch_about_dialog(root); patch_locale(root); patch_rootfs_validation(root)
     apply_layouts(root); patch_startup_flow(root); patch_navigation(root)
     print(f"NovaBox overlay applied to {root}; upstream notices are retained.")
     return 0
