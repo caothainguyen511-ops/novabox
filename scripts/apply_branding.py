@@ -367,21 +367,10 @@ def patch_about_dialog(root: Path) -> None:
     xml=xml.replace('android:text="@string/credits_and_third_party_apps"',
                     'android:text="@string/credits_and_third_party_apps"')
     if "BỘ TƯƠNG THÍCH WINDOWS CHO ANDROID" not in xml:
-        xml=xml.replace('android:id="@+id/TVWebpage"',
-            'android:id="@+id/TVWebpage"')
-        anchor='''                <TextView
-                    android:id="@+id/TVWebpage"'''
-        addition='''                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="BỘ TƯƠNG THÍCH WINDOWS CHO ANDROID"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorSecondaryText" />
-
-                <TextView
-                    android:id="@+id/TVWebpage"'''
-        xml=replace_once(xml,anchor,addition,"NovaBox about subtitle")
+        label='''<TextView android:id="@+id/TVWebpage"'''
+        if label in xml:
+            xml=xml.replace(label,'''<TextView android:text="BỘ TƯƠNG THÍCH WINDOWS CHO ANDROID" android:textSize="11sp" />
+<TextView android:id="@+id/TVWebpage"''',1)
     write(layout,xml)
 
     values=root/"app/app/src/main/res/values/strings.xml"
