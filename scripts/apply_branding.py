@@ -326,7 +326,7 @@ def patch_startup_flow(root: Path) -> None:
                 anchor="import androidx.appcompat.app.AppCompatActivity;"
             elif imp.startswith("import android.os."):
                 anchor="import android.os.Bundle;"
-            source=source.replace(anchor,anchor+"\\n"+imp,1)
+            source=source.replace(anchor,anchor+"\n"+imp,1)
 
     field_anchor="    private String screenEffectProfile;"
     fields="""    private String screenEffectProfile;
