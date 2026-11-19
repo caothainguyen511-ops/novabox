@@ -233,6 +233,74 @@ def patch_resources(root: Path) -> None:
 <string name="ok">Đồng ý</string>
 </resources>
 ''')
+    vi_text=read(vi)
+    translations={
+        "run":"Chạy","edit":"Chỉnh sửa","remove":"Xóa","add":"Thêm",
+        "creating_container":"Đang tạo môi trường…","removing_container":"Đang xóa môi trường…",
+        "duplicating_container":"Đang nhân bản môi trường…","installing_system_files":"Đang cài tệp hệ thống…",
+        "updating_system_files":"Đang cập nhật tệp hệ thống…","starting_up":"Đang khởi động…",
+        "unable_to_install_system_files":"Không thể cài tệp hệ thống","keyboard":"Bàn phím",
+        "toggle_fullscreen":"Bật/tắt toàn màn hình","exit":"Thoát","scale":"Tỷ lệ",
+        "shape":"Hình dạng","type":"Loại","binding":"Phím gán","binding_up":"Gán phím lên",
+        "binding_right":"Gán phím phải","binding_down":"Gán phím xuống","binding_left":"Gán phím trái",
+        "overlay_opacity":"Độ mờ lớp điều khiển","opacity":"Độ mờ","profile":"Hồ sơ",
+        "select_profile":"Chọn hồ sơ","profile_name":"Tên hồ sơ","name":"Tên",
+        "untitled":"Chưa đặt tên","enabled":"Đã bật","disabled":"Đã tắt",
+        "container":"Môi trường","new_environment_variable":"Biến môi trường mới",
+        "environment_variables":"Biến môi trường","value":"Giá trị","processor_affinity":"Phân bổ lõi CPU",
+        "cursor_speed":"Tốc độ con trỏ","relative_mouse_movement":"Di chuyển chuột tương đối",
+        "wine_configuration":"Cấu hình Wine","gpu_name":"Tên GPU","none":"Không có",
+        "custom_text":"Văn bản tùy chỉnh","icon":"Biểu tượng","import_profile":"Nhập hồ sơ",
+        "export_profile":"Xuất hồ sơ","touchpad_help":"Hướng dẫn bàn di chuột",
+        "duplicate":"Nhân bản","external_controllers":"Tay cầm ngoài",
+        "graphics_driver":"Trình điều khiển đồ họa","audio_driver":"Trình điều khiển âm thanh",
+        "loading":"Đang tải…","bindings":"Phím gán","show_touchscreen_controls":"Hiện nút điều khiển cảm ứng",
+        "drives":"Ổ đĩa","drive":"Ổ đĩa","force_fullscreen":"Buộc toàn màn hình",
+        "enable":"Bật","disable":"Tắt","force":"Buộc","install_wine":"Cài Wine",
+        "wine_version":"Phiên bản Wine","unable_to_install_wine":"Không thể cài Wine",
+        "preparing_installation":"Đang chuẩn bị cài đặt…","finishing_installation":"Đang hoàn tất cài đặt…",
+        "storage_info":"Thông tin lưu trữ","drive_c":"Ổ C:","total":"Tổng cộng",
+        "clear_cache":"Xóa bộ nhớ đệm","estimated_used_space":"Dung lượng đã sử dụng (ước tính)",
+        "advanced":"Nâng cao","system":"Hệ thống","box64_preset":"Cấu hình Box64",
+        "box64_version":"Phiên bản Box64","target_path":"Đường dẫn đích",
+        "task_manager":"Trình quản lý tác vụ","process_name":"Tên tiến trình",
+        "memory":"Bộ nhớ","battery":"Pin","end_process":"Kết thúc tiến trình",
+        "new_task":"Tác vụ mới","processes":"Tiến trình","orientation":"Hướng màn hình",
+        "horizontal":"Ngang","vertical":"Dọc","open_file":"Mở tệp","download_file":"Tải tệp",
+        "downloading_file":"Đang tải tệp…","a_network_error_occurred":"Đã xảy ra lỗi mạng",
+        "copy":"Sao chép","installed_version":"Phiên bản đã cài","unable_to_download_file":"Không thể tải tệp",
+        "stability":"Ổn định","conservative":"Tiết kiệm","intermediate":"Cân bằng",
+        "performance":"Hiệu năng","preset":"Thiết lập sẵn","columns":"Cột",
+        "desktop":"Màn hình nền","theme":"Giao diện","background":"Hình nền",
+        "frame_rate":"Tốc độ khung hình","configuration":"Cấu hình","browse":"Duyệt",
+        "options":"Tùy chọn","logs":"Nhật ký","general":"Chung","startup_selection":"Tùy chọn khởi động",
+        "new_folder":"Thư mục mới","view_style":"Kiểu hiển thị","cut":"Cắt",
+        "copying_files":"Đang sao chép tệp…","removing_files":"Đang xóa tệp…",
+        "disable_mouse_input":"Tắt điều khiển chuột","dpi_font_size":"DPI (Cỡ chữ)",
+        "gamepad_model":"Mẫu tay cầm","file_manager":"Trình quản lý tệp",
+        "documents":"Tài liệu","items":"mục","information":"Thông tin","rename":"Đổi tên",
+        "location":"Vị trí","file":"Tệp","folder":"Thư mục","size":"Kích thước",
+        "modified":"Ngày sửa đổi","contains":"Chứa","favorites":"Yêu thích",
+        "add_to_favorites":"Thêm vào yêu thích","game_controllers":"Tay cầm chơi game",
+        "home":"Trang chủ","reinstall_system_files":"Cài đặt lại tệp hệ thống",
+        "mouse":"Chuột","cursor_size":"Kích thước con trỏ","color":"Màu sắc",
+        "volume":"Âm lượng","performance_mode":"Chế độ hiệu năng","audio":"Âm thanh",
+        "screen_effect":"Hiệu ứng màn hình","brightness":"Độ sáng","contrast":"Độ tương phản",
+        "gamma":"Gamma","color_adjustment":"Điều chỉnh màu","reset":"Đặt lại",
+        "open_directory":"Mở thư mục","locations":"Vị trí","downloads":"Tệp tải xuống",
+        "internal_storage":"Bộ nhớ trong","windows_version":"Phiên bản Windows",
+        "install_component":"Cài thành phần","system_font":"Phông chữ hệ thống",
+        "vulkan_version":"Phiên bản Vulkan","sound":"Âm thanh","channel":"Kênh",
+        "note":"Ghi chú","reset":"Đặt lại","ok":"Đồng ý","cancel":"Hủy"
+    }
+    for key,value in translations.items():
+        pattern=rf'(<string\s+name="{re.escape(key)}"[^>]*>).*?(</string>)'
+        if re.search(pattern,vi_text,re.S):
+            vi_text=re.sub(pattern,lambda m:m.group(1)+value+m.group(2),vi_text,count=1,flags=re.S)
+        else:
+            vi_text=vi_text.replace("</resources>",f'    <string name="{key}">{value}</string>\n</resources>')
+    write(vi,vi_text)
+
     for locale in ("values-pt/strings.xml","values-ru/strings.xml"):
         path=res/locale
         if path.exists():
