@@ -153,10 +153,10 @@ break;
     assert "vi_VN" in locale and 'getInt("lc_index", 3)' in locale
     rootfs = (root / "app/app/src/main/java/com/winlator/xenvironment/RootFS.java").read_text()
     assert "usr/local/bin/box64" in rootfs and "hasRequiredBinaries()" in rootfs
-    assert "box64.canExecute()" in rootfs and "wine.canExecute()" in rootfs
+    assert "Box64 is installed/updated as a separate component" in rootfs and "wine.isFile()" in rootfs
     installer = (root / "app/app/src/main/java/com/winlator/xenvironment/RootFSInstaller.java").read_text()
     assert "success && rootFS.hasRequiredBinaries()" in installer
-    assert "versionFile.delete()" in installer
+    assert "versionFile.delete()" in installer and "INSTALLING.compareAndSet(false, true)" in installer
     manager = (root / "app/app/src/main/java/com/winlator/container/ContainerManager.java").read_text()
     assert "if (!file.isDirectory() || !file.getName().startsWith" in manager
 
