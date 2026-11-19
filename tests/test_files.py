@@ -144,6 +144,8 @@ break;
     assert "CHƠI GAME WINDOWS TRÊN ANDROID" in (root / "app/app/src/main/res/layout/main_menu_header.xml").read_text()
     startup = (root / "app/app/src/main/java/com/winlator/XServerDisplayActivity.java").read_text()
     assert "novaBoxStartupHandler.postDelayed" in startup
+    assert "window.isRenderable() && !window.getClassName().isEmpty()" not in startup
+    assert "if (!flags[0] && window.isRenderable())" in startup
     assert "Startup failed at" in startup
     assert "guestProgramLauncherComponent.getProcessId()" in startup
     guest = (root / "app/app/src/main/java/com/winlator/xenvironment/components/GuestProgramLauncherComponent.java").read_text()
