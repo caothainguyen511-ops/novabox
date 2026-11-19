@@ -289,10 +289,8 @@ def patch_navigation(root: Path) -> None:
 
     activity_path=root/"app/app/src/main/java/com/winlator/MainActivity.java"
     activity=read(activity_path)
-    anchor='''            case R.id.menu_item_settings:
-                showFragment(new SettingsFragment());
-                break;'''
-    addition='''            case R.id.menu_item_driver_hub:
+    pattern = r"case R\\.id\\.menu_item_settings:\\s*showFragment\\(new SettingsFragment\\(\\)\\);\\s*break;"
+    addition = """case R.id.menu_item_driver_hub:
                 showFragment(new DriverHubFragment());
                 break;
             case R.id.menu_item_steam_library:
@@ -300,9 +298,11 @@ def patch_navigation(root: Path) -> None:
                 break;
             case R.id.menu_item_settings:
                 showFragment(new SettingsFragment());
-                break;'''
+                break;"""
     if "new DriverHubFragment()" not in activity:
-        activity=replace_once(activity,anchor,addition,"MainActivity navigation switch")
+        activity, count = re.subn(pattern, addition, activity, count=1)
+        if count != 1:
+            raise RuntimeError("Could not patch MainActivity navigation switch")
     if "NovaBox modification" not in activity:
         activity=activity.replace("package com.winlator;","package com.winlator;\n\n/* NovaBox modification: Driver Hub and Steam Library navigation. */",1)
     write(activity_path,activity)
