@@ -254,6 +254,7 @@ def patch_resources(root: Path) -> None:
         t=t.replace("</resources>",'    <color name="novabox_icon_background">#050716</color>\n</resources>')
     write(colors,t)
     foreground=Path(__file__).resolve().parents[1]/"branding/novabox_launcher_foreground.xml"
+    (res/"drawable").mkdir(parents=True,exist_ok=True)
     shutil.copyfile(foreground,res/"drawable/novabox_launcher_foreground.xml")
 
     styles=res/"values/styles.xml"
