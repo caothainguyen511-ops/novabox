@@ -23,6 +23,44 @@ with tempfile.TemporaryDirectory() as tmp:
         "app/app/src/main/res/menu/main_menu.xml": '<menu xmlns:android="http://schemas.android.com/apk/res/android"><group android:checkableBehavior="single"><item android:id="@+id/menu_item_about" /></group></menu>',
         "app/app/src/main/res/layout/main_menu_header.xml": "<FrameLayout />",
         "app/app/src/main/res/layout/container_list_item.xml": '<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal" android:paddingLeft="16dp" android:paddingRight="16dp" android:gravity="center_vertical" />',
+        "app/app/src/main/java/com/winlator/XServerDisplayActivity.java": """package com.winlator;
+import android.app.Activity;
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+class XServerDisplayActivity extends AppCompatActivity {
+    private String screenEffectProfile;
+    void onCreate() {
+        final boolean[] flags = {false, shortcut != null || getIntent().hasExtra("exec_path")};
+        xServer.windowManager.addOnWindowModificationListener(new WindowManager.OnWindowModificationListener() {
+            public void onMapWindow(Window window) {
+                if (!flags[0] && window.isRenderable() && !window.getClassName().isEmpty()) {
+                    preloaderDialog.closeOnUiThread();
+                    flags[0] = true;
+                }
+            }
+        });
+        Executors.newSingleThreadExecutor().execute(() -> {
+            if (!isGenerateWineprefix()) {
+                setupWineSystemFiles();
+                extractGraphicsDriverFiles();
+                changeWineAudioDriver();
+            }
+            setupXEnvironment();
+        });
+    }
+    protected void onDestroy() {
+        winHandler.stop();
+    }
+    void setupXEnvironment() {
+        environment.startEnvironmentComponents();
+    }
+}""",
+        "app/app/src/main/java/com/winlator/xenvironment/components/GuestProgramLauncherComponent.java": """package com.winlator.xenvironment.components;
+class GuestProgramLauncherComponent {
+    public void setGuestExecutable(String guestExecutable) {
+        this.guestExecutable = guestExecutable;
+    }
+}""",
         "app/app/src/main/java/com/winlator/core/LocaleHelper.java": 'package com.winlator.core; public class LocaleHelper { private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU"}; void f(SharedPreferences preferences) { int index = preferences.getInt("lc_index", -1); } }',
         "app/app/src/main/java/com/winlator/container/ContainerManager.java": """package com.winlator.container;
 class ContainerManager { void loadContainers() {
@@ -86,5 +124,11 @@ break;
     assert menu.count("menu_item_driver_hub") == 1
     assert menu.count("menu_item_steam_library") == 1
     assert "CHƠI GAME WINDOWS TRÊN ANDROID" in (root / "app/app/src/main/res/layout/main_menu_header.xml").read_text()
+    startup = (root / "app/app/src/main/java/com/winlator/XServerDisplayActivity.java").read_text()
+    assert "novaBoxStartupHandler.postDelayed" in startup
+    assert "Startup failed at" in startup
+    assert "guestProgramLauncherComponent.getProcessId()" in startup
+    guest = (root / "app/app/src/main/java/com/winlator/xenvironment/components/GuestProgramLauncherComponent.java").read_text()
+    assert "public int getProcessId()" in guest
 
 print("NovaBox overlay fixture test passed")
