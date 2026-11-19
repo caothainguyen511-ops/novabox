@@ -1,0 +1,45 @@
+name: NovaBox Android
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout NovaBox
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install native build packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;24.0.8215888" "cmake;3.22.1"
+      - name: Run NovaBox offline overlay tests
+        run: |
+          python3 tests/test_files.py
+          bash -n scripts/bootstrap.sh scripts/build-local.sh
+          python3 -m py_compile scripts/apply_branding.py scripts/layout_overlay.py
+      - name: Bootstrap pinned Winlator engine and apply NovaBox UI
+        run: ./scripts/bootstrap.sh
+      - name: Build APK
+        working-directory: vendor/winlator/app
+        run: chmod +x ./gradlew && ./gradlew --no-daemon :app:assembleDebug
+      - name: Copy APK
+        run: |
+          mkdir -p dist
+          cp vendor/winlator/app/app/build/outputs/apk/debug/app-debug.apk dist/NovaBox-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NovaBox-Android-debug-apk
+          path: dist/NovaBox-debug.apk
+          if-no-files-found: error
