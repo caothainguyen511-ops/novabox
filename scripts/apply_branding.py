@@ -41,7 +41,7 @@ public final class SplashActivity extends Activity {
         getWindow().setStatusBarColor(Color.rgb(5, 7, 22));
         getWindow().setNavigationBarColor(Color.rgb(5, 7, 22));
         setContentView(new SplashArtView());
-        handler.postDelayed(launchMain, 850L);
+        handler.postDelayed(launchMain, 250L);
     }
     @Override protected void onDestroy() {
         handler.removeCallbacks(launchMain);
@@ -108,7 +108,7 @@ public final class SplashActivity extends Activity {
             p.setStyle(Paint.Style.FILL); p.setTypeface(heavy); p.setTextSize(20); p.setColor(0xff22d3ee);
             c.drawText("PLAY  •  RUN  •  ENJOY",360,1170,p);
             p.setTypeface(normal); p.setTextSize(16); p.setColor(0xffaab4df);
-            c.drawText("POWERED BY NOVABOX",360,1210,p);
+            c.drawText("NOVABOX BY CAOTHAINGUYEN",360,1210,p);
             c.restore();
         }
     }
@@ -186,13 +186,13 @@ def patch_resources(root: Path) -> None:
     res=root/"app/app/src/main/res"
     values=res/"values/strings.xml"
     text=read(values)
-    names={"app_name":"NovaBox","shortcuts":"Library","containers":"Windows Environments",
-           "input_controls":"Controls","settings":"Settings","about":"About NovaBox"}
+    names={"app_name":"NovaBox","shortcuts":"Thư viện ứng dụng","containers":"Môi trường Windows",
+           "input_controls":"Điều khiển","settings":"Cài đặt","about":"Giới thiệu NovaBox"}
     for key,val in names.items():
         pattern=rf'(<string\s+name="{re.escape(key)}"[^>]*>).*?(</string>)'
         text,count=re.subn(pattern,lambda m:m.group(1)+val+m.group(2),text,count=1,flags=re.S)
         if not count: raise RuntimeError(f"Missing string resource {key}")
-    for key,val in (("driver_hub","Driver Hub"),("steam_library","Steam Library")):
+    for key,val in (("driver_hub","Trung tâm đồ họa"),("steam_library","Thư viện Steam")):
         if f'name="{key}"' not in text:
             text=text.replace("</resources>",f'    <string name="{key}">{val}</string>\n</resources>')
     write(values,text)
