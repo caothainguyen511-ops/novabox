@@ -3,6 +3,8 @@ from pathlib import Path
 
 STRINGS = {
     "run": "Chạy", "edit": "Sửa", "add": "Thêm",
+    "shortcuts": "Thư viện ứng dụng", "containers": "Môi trường Windows",
+    "input_controls": "Điều khiển", "settings": "Cài đặt", "about": "Giới thiệu NovaBox",
     "controls_editor": "Chỉnh điều khiển",
     "external_controllers": "Tay cầm ngoài",
     "wine_configuration": "Cấu hình Wine",
@@ -16,6 +18,8 @@ STRINGS = {
     "force_fullscreen": "Buộc toàn màn hình",
     "task_manager": "Trình quản lý tác vụ",
     "open_file": "Mở tệp", "download_file": "Tải gói",
+    "create_container": "Tạo môi trường", "install_component": "Cài thành phần",
+    "remove": "Gỡ", "cancel": "Hủy", "ok": "Đồng ý", "loading": "Đang tải…",
 }
 
 def apply_layouts(root: Path) -> None:
@@ -31,7 +35,7 @@ def apply_layouts(root: Path) -> None:
     header = resources / "layout/main_menu_header.xml"
     header.write_text('''<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="142dp"
+    android:layout_width="match_parent" android:layout_height="166dp"
     android:background="@drawable/novabox_header_background"
     android:paddingLeft="18dp" android:paddingRight="18dp" android:paddingBottom="20dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -40,8 +44,11 @@ def apply_layouts(root: Path) -> None:
             android:text="NOVABOX" android:textColor="#FFFFFF" android:textSize="26sp"
             android:textStyle="bold" android:letterSpacing="0.08" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="4dp" android:text="WINDOWS COMPATIBILITY FOR ANDROID"
+            android:layout_marginTop="4dp" android:text="CHƠI GAME WINDOWS TRÊN ANDROID"
             android:textColor="#B8C4DC" android:textSize="10sp" android:letterSpacing="0.08" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="5dp" android:text="NOVABOX BY CAOTHAINGUYEN"
+            android:textColor="#22D3EE" android:textSize="9sp" android:textStyle="bold" />
     </LinearLayout>
 </FrameLayout>''', encoding="utf-8", newline="\n")
 
