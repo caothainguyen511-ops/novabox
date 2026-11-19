@@ -80,6 +80,23 @@ class ProcessHelper {
     }
 }""",
         "app/app/src/main/java/com/winlator/core/LocaleHelper.java": 'package com.winlator.core; public class LocaleHelper { private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU"}; void f(SharedPreferences preferences) { int index = preferences.getInt("lc_index", -1); } }',
+        "app/app/src/main/java/com/winlator/xenvironment/RootFS.java": """package com.winlator.xenvironment;
+class RootFS {
+    private File rootDir;
+    public boolean isValid() {
+        return rootDir.isDirectory() && getRFSVersionFile().exists();
+    }
+}""",
+        "app/app/src/main/java/com/winlator/xenvironment/RootFSInstaller.java": """package com.winlator.xenvironment;
+class RootFSInstaller {
+    void install() {
+        if (success) {
+            rootFS.createRFSVersionFile(LATEST_VERSION);
+            resetContainerRFSVersions(activity);
+        }
+        else AppUtils.showToast(activity, R.string.unable_to_install_system_files);
+    }
+}""",
         "app/app/src/main/java/com/winlator/container/ContainerManager.java": """package com.winlator.container;
 class ContainerManager { void loadContainers() {
                     if (file.isDirectory()) {
@@ -118,6 +135,12 @@ break;
     assert "NovaBox" in (root / "app/app/src/main/res/values-vi/strings.xml").read_text()
     locale = (root / "app/app/src/main/java/com/winlator/core/LocaleHelper.java").read_text()
     assert "vi_VN" in locale and 'getInt("lc_index", 3)' in locale
+    rootfs = (root / "app/app/src/main/java/com/winlator/xenvironment/RootFS.java").read_text()
+    assert "usr/local/bin/box64" in rootfs and "hasRequiredBinaries()" in rootfs
+    assert "box64.canExecute()" in rootfs and "wine.canExecute()" in rootfs
+    installer = (root / "app/app/src/main/java/com/winlator/xenvironment/RootFSInstaller.java").read_text()
+    assert "success && rootFS.hasRequiredBinaries()" in installer
+    assert "versionFile.delete()" in installer
     manager = (root / "app/app/src/main/java/com/winlator/container/ContainerManager.java").read_text()
     assert "if (!file.isDirectory() || !file.getName().startsWith" in manager
 
