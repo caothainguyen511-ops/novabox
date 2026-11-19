@@ -384,7 +384,8 @@ def patch_about_dialog(root: Path) -> None:
     for key,value in replacements.items():
         pattern=rf'(<string\s+name="{re.escape(key)}"[^>]*>).*?(</string>)'
         strings,count=re.subn(pattern,lambda m:m.group(1)+value+m.group(2),strings,count=1,flags=re.S)
-        if not count: raise RuntimeError(f"Missing about string {key}")
+        if not count:
+            strings=strings.replace("</resources>",f'    <string name="{key}">{value}</string>\\n</resources>')
     write(values,strings)
 
 def patch_locale(root: Path) -> None:
