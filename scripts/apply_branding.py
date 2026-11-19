@@ -433,7 +433,7 @@ def patch_startup_flow(root: Path) -> None:
     launch_anchor="        environment.startEnvironmentComponents();"
     launch_new=launch_anchor+"""
         if (container != null && guestProgramLauncherComponent.getProcessId() <= 0) {
-            throw new IllegalStateException("Không tạo được tiến trình Box64/Wine. Tệp Box64 hoặc bộ dữ liệu hệ thống có thể bị thiếu.");
+            throw new IllegalStateException("Không tạo được tiến trình Box64/Wine. " + ProcessHelper.getLastExecError());
         }"""
     if "guestProgramLauncherComponent.getProcessId()" not in source:
         source=replace_once(source,launch_anchor,launch_new,"guest process launch validation")
@@ -453,6 +453,30 @@ def patch_startup_flow(root: Path) -> None:
     }"""
         guest=replace_once(guest,anchor,addition,"guest process id accessor")
     write(guest_path,guest)
+
+    helper_path=root/"app/app/src/main/java/com/winlator/core/ProcessHelper.java"
+    helper=read(helper_path)
+    if "getLastExecError()" not in helper:
+        helper=helper.replace("    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();",
+            "    private static final ArrayList<Callback<String>> debugCallbacks = new ArrayList<>();\n    private static volatile String lastExecError = \\"";",1)
+        helper=helper.replace("    public static void removeAllDebugCallbacks() {",
+            "    public static String getLastExecError() { return lastExecError; }\n\n    public static void removeAllDebugCallbacks() {",1)
+        old="""            if (terminationCallback != null) createWaitForThread(process, terminationCallback);
+        }
+        catch (Exception e) {}
+        return pid;"""
+        new="""            if (terminationCallback != null) createWaitForThread(process, terminationCallback);
+            lastExecError = "";
+        }
+        catch (Exception e) {
+            lastExecError = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
+            android.util.Log.e("NovaBoxProcess", "Failed to start guest process: " + command, e);
+        }
+        return pid;"""
+        if old not in helper:
+            raise RuntimeError("Could not locate ProcessHelper.exec error handler")
+        helper=helper.replace(old,new,1)
+        write(helper_path,helper)
 
     vi=root/"app/app/src/main/res/values-vi/strings.xml"
     # Existing strings are preserved; this message is also used in the native startup dialog.
