@@ -32,6 +32,18 @@ def apply_layouts(root: Path) -> None:
         text = text.replace("</resources>", "\n".join(additions) + "\n</resources>")
     vi.write_text(text, encoding="utf-8", newline="\n")
 
+    # Give the app shell a distinct NovaBox identity beyond the splash screen.
+    main = resources / "layout/main_activity.xml"
+    if main.exists():
+        shell = main.read_text(encoding="utf-8")
+        shell = shell.replace('android:orientation="vertical">',
+            'android:orientation="vertical"\\n        android:background="#0B0E16">', 1)
+        shell = shell.replace('android:id="@+id/Toolbar"',
+            'android:id="@+id/Toolbar"\\n            android:background="#17152A"\\n            android:elevation="6dp"', 1)
+        shell = shell.replace('app:title="@string/app_name" />',
+            'app:title="@string/app_name"\\n            app:titleTextColor="#FFFFFF" />', 1)
+        main.write_text(shell, encoding="utf-8", newline="\\n")
+
     header = resources / "layout/main_menu_header.xml"
     header.write_text('''<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
