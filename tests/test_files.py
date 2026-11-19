@@ -23,6 +23,20 @@ with tempfile.TemporaryDirectory() as tmp:
         "app/app/src/main/res/menu/main_menu.xml": '<menu xmlns:android="http://schemas.android.com/apk/res/android"><group android:checkableBehavior="single"><item android:id="@+id/menu_item_about" /></group></menu>',
         "app/app/src/main/res/layout/main_menu_header.xml": "<FrameLayout />",
         "app/app/src/main/res/layout/container_list_item.xml": '<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal" android:paddingLeft="16dp" android:paddingRight="16dp" android:gravity="center_vertical" />',
+        "app/app/src/main/java/com/winlator/core/LocaleHelper.java": 'package com.winlator.core; public class LocaleHelper { private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU"}; void f(SharedPreferences preferences) { int index = preferences.getInt("lc_index", -1); } }',
+        "app/app/src/main/java/com/winlator/container/ContainerManager.java": """package com.winlator.container;
+class ContainerManager { void loadContainers() {
+                    if (file.isDirectory()) {
+                        if (file.getName().startsWith(RootFS.USER+"-")) {
+                            Container container = new Container(Integer.parseInt(file.getName().replace(RootFS.USER+"-", "")));
+                            container.setRootDir(new File(homeDir, RootFS.USER+"-"+container.id));
+                            JSONObject data = new JSONObject(FileUtils.readString(container.getConfigFile()));
+                            container.loadData(data);
+                            containers.add(container);
+                            maxContainerId = Math.max(maxContainerId, container.id);
+                        }
+                    }
+} }""",
         "app/app/src/main/java/com/winlator/MainActivity.java": """package com.winlator;
 public class MainActivity { public boolean onNavigationItemSelected(MenuItem item) { switch (item.getItemId()) {
 case R.id.menu_item_settings:
@@ -46,6 +60,10 @@ break;
     gradle = (root / "app/app/build.gradle").read_text()
     assert "com.novabox.emulator" in gradle
     assert "NovaBox" in (root / "app/app/src/main/res/values-vi/strings.xml").read_text()
+    locale = (root / "app/app/src/main/java/com/winlator/core/LocaleHelper.java").read_text()
+    assert "vi_VN" in locale and 'getInt("lc_index", 3)' in locale
+    manager = (root / "app/app/src/main/java/com/winlator/container/ContainerManager.java").read_text()
+    assert "if (!file.isDirectory() || !file.getName().startsWith" in manager
 
     manifest = root / "app/app/src/main/AndroidManifest.xml"
     ET.parse(manifest)
