@@ -74,8 +74,8 @@ public final class SteamLibraryFragment extends Fragment {
         LinearLayout page=new LinearLayout(c);page.setOrientation(LinearLayout.VERTICAL);
         page.setPadding(dp(c,16),dp(c,18),dp(c,16),dp(c,26));scroll.addView(page);
 
-        page.addView(text(c,"STEAM LIBRARY",23,TEXT,true));
-        page.addView(text(c,"Quét game đã cài trong từng môi trường Windows NovaBox.",13,MUTED,false),params(c,-1,-2,0,6,0,12));
+        page.addView(text(c,"THƯ VIỆN STEAM",23,TEXT,true));
+        page.addView(text(c,"Quét trò chơi đã cài trong từng môi trường Windows NovaBox.",13,MUTED,false),params(c,-1,-2,0,6,0,12));
 
         LinearLayout top=card(c);page.addView(top,params(c,-1,-2,0,0,0,12));
         top.addView(text(c,"CHỌN MÔI TRƯỜNG WINDOWS",11,ACCENT,true));
@@ -83,15 +83,15 @@ public final class SteamLibraryFragment extends Fragment {
         steamPath=text(c,"Chưa quét Steam",12,MUTED,false);top.addView(steamPath,params(c,-1,-2,0,8,0,0));
         LinearLayout actions=new LinearLayout(c);actions.setOrientation(LinearLayout.HORIZONTAL);
         top.addView(actions,params(c,-1,48,0,12,0,0));
-        Button scan=button(c,"Đồng bộ thư viện",true);actions.addView(scan,new LinearLayout.LayoutParams(0,dp(c,44),1));
+        Button scan=button(c,"LÀM MỚI THƯ VIỆN",true);actions.addView(scan,new LinearLayout.LayoutParams(0,dp(c,44),1));
         scan.setOnClickListener(v->scan());
-        Button open=button(c,"Mở Steam",false);LinearLayout.LayoutParams op=new LinearLayout.LayoutParams(0,dp(c,44),1);op.leftMargin=dp(c,8);actions.addView(open,op);
+        Button open=button(c,"MỞ STEAM",false);LinearLayout.LayoutParams op=new LinearLayout.LayoutParams(0,dp(c,44),1);op.leftMargin=dp(c,8);actions.addView(open,op);
         open.setOnClickListener(v->launch(null));
 
         LinearLayout notice=card(c);page.addView(notice,params(c,-1,-2,0,0,0,12));
         notice.addView(text(c,"BẢO MẬT TÀI KHOẢN",11,ACCENT,true));
-        notice.addView(text(c,"Đăng nhập và xác thực Steam Guard trực tiếp trong Steam client. NovaBox không yêu cầu mật khẩu, không lưu cookie và không cần Steam Web API key.",13,MUTED,false),params(c,-1,-2,0,6,0,0));
-        status=text(c,"Chọn môi trường rồi nhấn Đồng bộ thư viện.",13,MUTED,false);
+        notice.addView(text(c,"Đăng nhập và xác thực Steam Guard ngay trong ứng dụng Steam. NovaBox không yêu cầu mật khẩu, không lưu cookie và không cần khóa API.",13,MUTED,false),params(c,-1,-2,0,6,0,0));
+        status=text(c,"Chọn môi trường rồi nhấn LÀM MỚI THƯ VIỆN.",13,MUTED,false);
         page.addView(status,params(c,-1,-2,0,4,0,10));
         results=new LinearLayout(c);results.setOrientation(LinearLayout.VERTICAL);page.addView(results);
         loadContainers(c);
@@ -105,13 +105,13 @@ public final class SteamLibraryFragment extends Fragment {
         selector.setAdapter(new ArrayAdapter<>(c,android.R.layout.simple_spinner_dropdown_item,names));
         selector.setEnabled(!containers.isEmpty());
         selected=containers.isEmpty()?null:containers.get(0);
-        if(selected==null)status.setText("Hãy tạo một môi trường Windows, sau đó cài Steam vào môi trường đó.");
+        if(selected==null)status.setText("Hãy tạo môi trường Windows rồi cài Steam vào đó.");
         selector.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
             @Override public void onItemSelected(android.widget.AdapterView<?> p,View v,int position,long id){
                 selected=position>=0&&position<containers.size()?containers.get(position):null;
                 steamExe=null;results.removeAllViews();
                 steamPath.setText("Chưa quét Steam trong môi trường này.");
-                status.setText("Nhấn Đồng bộ thư viện để tìm Steam và game đã cài.");
+                status.setText("Nhấn LÀM MỚI THƯ VIỆN để tìm Steam và game đã cài.");
             }
             @Override public void onNothingSelected(android.widget.AdapterView<?> p){}
         });
@@ -133,17 +133,17 @@ public final class SteamLibraryFragment extends Fragment {
             }
         }
         if(steamExe==null){
-            status.setText("Không tìm thấy Steam client trong môi trường này.");
-            steamPath.setText("Cài Steam vào chính container đang chọn, rồi quét lại.");
+            status.setText("Không tìm thấy ứng dụng Steam trong môi trường này.");
+            steamPath.setText("Cài Steam vào môi trường đang chọn, sau đó quét lại.");
             Button help=button(requireContext(),"Mở trang Steam chính thức",false);
             results.addView(help,params(requireContext(),-1,46,0,10,0,0));
             help.setOnClickListener(v->startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://store.steampowered.com/about/"))));
             return;
         }
         steamPath.setText("Steam: "+steamExe.getParent());
-        status.setText("Đã đồng bộ "+games.size()+" game từ "+libraries.size()+" thư viện Steam.");
+        status.setText("Đã tìm thấy "+games.size()+" trò chơi trong "+libraries.size()+" thư viện Steam.");
         if(games.isEmpty()){
-            results.addView(text(requireContext(),"Chưa thấy game đã cài. Mở Steam để đăng nhập hoặc cài game vào container này.",13,MUTED,false));
+            results.addView(text(requireContext(),"Chưa thấy game đã cài. MỞ STEAM để đăng nhập hoặc cài game vào container này.",13,MUTED,false));
             return;
         }
         ArrayList<Game> sorted=new ArrayList<>(games.values());sorted.sort((a,b)->a.name.compareToIgnoreCase(b.name));
@@ -199,7 +199,7 @@ public final class SteamLibraryFragment extends Fragment {
         results.addView(item,params(c,-1,-2,0,0,0,10));
         item.addView(text(c,game.name,15,TEXT,true));
         item.addView(text(c,"Steam AppID: "+game.id+" · "+game.folder,11,MUTED,false),params(c,-1,-2,0,5,0,0));
-        Button play=button(c,"Chạy qua Steam",true);item.addView(play,params(c,-1,42,0,10,0,0));
+        Button play=button(c,"CHẠY qua Steam",true);item.addView(play,params(c,-1,42,0,10,0,0));
         play.setOnClickListener(v->launch(game.id));
     }
 
