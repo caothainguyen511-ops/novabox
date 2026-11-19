@@ -274,6 +274,47 @@ def patch_resources(root: Path) -> None:
 </resources>''')
     write(styles,t)
 
+def patch_locale(root: Path) -> None:
+    path=root/"app/app/src/main/java/com/winlator/core/LocaleHelper.java"
+    text=read(path)
+    text=text.replace('private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU"};',
+                      'private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU", "vi_VN"};')
+    text=text.replace('int index = preferences.getInt("lc_index", -1);',
+                      'int index = preferences.getInt("lc_index", 3);')
+    write(path,text)
+
+    manager=root/"app/app/src/main/java/com/winlator/container/ContainerManager.java"
+    source=read(manager)
+    old='''                    if (file.isDirectory()) {
+                        if (file.getName().startsWith(RootFS.USER+"-")) {
+                            Container container = new Container(Integer.parseInt(file.getName().replace(RootFS.USER+"-", "")));
+                            container.setRootDir(new File(homeDir, RootFS.USER+"-"+container.id));
+                            JSONObject data = new JSONObject(FileUtils.readString(container.getConfigFile()));
+                            container.loadData(data);
+                            containers.add(container);
+                            maxContainerId = Math.max(maxContainerId, container.id);
+                        }
+                    }'''
+    new='''                    if (!file.isDirectory() || !file.getName().startsWith(RootFS.USER+"-")) continue;
+                    String idText = file.getName().substring((RootFS.USER+"-").length());
+                    File config = new File(file, ".container");
+                    if (!config.isFile()) continue;
+                    try {
+                        int id = Integer.parseInt(idText);
+                        Container container = new Container(id);
+                        container.setRootDir(file);
+                        JSONObject data = new JSONObject(FileUtils.readString(config));
+                        container.loadData(data);
+                        containers.add(container);
+                        maxContainerId = Math.max(maxContainerId, id);
+                    }
+                    catch (NumberFormatException | JSONException ignored) {}'''
+    if old in source:
+        source=source.replace(old,new,1)
+    elif new not in source:
+        raise RuntimeError("Could not locate container loading loop")
+    write(manager,source)
+
 def patch_navigation(root: Path) -> None:
     menu_path=root/"app/app/src/main/res/menu/main_menu.xml"
     menu=read(menu_path)
@@ -319,7 +360,7 @@ def main() -> int:
     if len(sys.argv)!=2: raise SystemExit("Usage: apply_branding.py /path/to/winlator")
     root=Path(sys.argv[1]).resolve()
     if not (root/".git").exists(): raise SystemExit(f"Not a Git checkout: {root}")
-    patch_gradle(root); patch_manifest(root); patch_resources(root)
+    patch_gradle(root); patch_manifest(root); patch_resources(root); patch_locale(root)
     apply_layouts(root); patch_navigation(root)
     print(f"NovaBox overlay applied to {root}; upstream notices are retained.")
     return 0
