@@ -355,6 +355,12 @@ def patch_startup_flow(root: Path) -> None:
     if "novaBoxStartupHandler.postDelayed" not in source:
         source=replace_once(source,flag_anchor,flag_replacement,"NovaBox startup timeout")
 
+    # Close the overlay for any renderable X11 window. Some Wine desktop windows
+    # do not report WM_CLASS, so requiring a non-empty class can leave loading forever.
+    source=source.replace(
+        "if (!flags[0] && window.isRenderable() && !window.getClassName().isEmpty()) {",
+        "if (!flags[0] && window.isRenderable()) {", 1)
+
     map_anchor="""                    preloaderDialog.closeOnUiThread();
                     flags[0] = true;"""
     map_replacement="""                    novaBoxStartupWindowReady = true;
