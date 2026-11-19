@@ -94,8 +94,8 @@ public final class SplashActivity extends Activity {
                 new int[]{0xfff8f7ff,0xffa9aaff,0xff22d3ee},null,Shader.TileMode.CLAMP));
             c.drawText("NOVABOX",360,700,p); p.setShader(null);
             p.setTypeface(normal); p.setTextSize(23); p.setColor(0xffe8eaff);
-            c.drawText("WINDOWS COMPATIBILITY",360,765,p);
-            c.drawText("FOR ANDROID",360,805,p);
+            c.drawText("TƯƠNG THÍCH WINDOWS",360,765,p);
+            c.drawText("TRÊN ANDROID",360,805,p);
 
             p.setColor(0xff121d55);
             for (int i=0;i<18;i++) {
@@ -106,7 +106,7 @@ public final class SplashActivity extends Activity {
             p.setShader(new LinearGradient(0,1020,720,1020,0xffa31cff,0xff00dbff,Shader.TileMode.CLAMP));
             c.drawArc(new RectF(40,900,680,1110),190,160,false,p); p.setShader(null);
             p.setStyle(Paint.Style.FILL); p.setTypeface(heavy); p.setTextSize(20); p.setColor(0xff22d3ee);
-            c.drawText("PLAY  •  RUN  •  ENJOY",360,1170,p);
+            c.drawText("CHƠI  •  CHẠY  •  TRẢI NGHIỆM",360,1170,p);
             p.setTypeface(normal); p.setTextSize(16); p.setColor(0xffaab4df);
             c.drawText("NOVABOX BY CAOTHAINGUYEN",360,1210,p);
             c.restore();
@@ -437,10 +437,10 @@ def patch_rootfs_validation(root: Path) -> None:
         return rootDir.isDirectory() && getRFSVersionFile().exists();
     }"""
     new="""    public boolean hasRequiredBinaries() {
-        File box64 = new File(rootDir, "usr/local/bin/box64");
+        // Box64 is installed/updated as a separate component by GeneralComponents.
+        // Do not reject a valid RootFS merely because that optional component is absent.
         File wine = new File(rootDir, "opt/wine/bin/wine");
-        return box64.isFile() && box64.length() > 0 && box64.canExecute()
-            && wine.isFile() && wine.length() > 0 && wine.canExecute();
+        return wine.isFile() && wine.length() > 0;
     }
 
     public boolean isValid() {
@@ -472,6 +472,72 @@ def patch_rootfs_validation(root: Path) -> None:
         installer=installer.replace(old,new,1)
     elif new not in installer:
         raise RuntimeError("Could not locate RootFS installation success handler")
+
+    # Make reinstall safe against rapid repeated taps and keep extraction failures
+    # from crashing the Settings screen. Box64 is deliberately not required here.
+    if "private static final java.util.concurrent.atomic.AtomicBoolean INSTALLING" not in installer:
+        installer=installer.replace(
+            "public abstract class RootFSInstaller {",
+            "public abstract class RootFSInstaller {\\n    private static final java.util.concurrent.atomic.AtomicBoolean INSTALLING = new java.util.concurrent.atomic.AtomicBoolean(false);",1)
+    install_start=installer.find("    public static void install(final MainActivity activity) {")
+    install_end=installer.find("    public static void installIfNeeded", install_start)
+    if install_start < 0 or install_end < 0:
+        raise RuntimeError("Could not locate RootFS install method")
+    install_method="""    public static void install(final MainActivity activity) {
+        if (activity == null || activity.isFinishing() || !INSTALLING.compareAndSet(false, true)) return;
+        AppUtils.keepScreenOn(activity);
+        RootFS rootFS = RootFS.find(activity);
+        final File rootDir = rootFS.getRootDir();
+        SettingsFragment.resetPreferenceVersions(activity);
+        final DownloadProgressDialog dialog = new DownloadProgressDialog(activity);
+        dialog.show(R.string.installing_system_files);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                clearRootDir(rootDir);
+                final long contentLength = TarCompressorUtils.getContentLength(TarCompressorUtils.Type.ZSTD, activity, FILENAME, rootDir);
+                AtomicLong totalSizeRef = new AtomicLong();
+                boolean success = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, activity, FILENAME, rootDir, (file, size) -> {
+                    if (size > 0 && contentLength > 0) {
+                        long totalSize = totalSizeRef.addAndGet(size);
+                        final int progress = (int)Math.min(99L, (totalSize * 100L) / contentLength);
+                        activity.runOnUiThread(() -> {
+                            if (!activity.isFinishing() && dialog.isShowing()) dialog.setProgress(progress);
+                        });
+                    }
+                    return file;
+                });
+                if (success && rootFS.hasRequiredBinaries()) {
+                    rootFS.createRFSVersionFile(LATEST_VERSION);
+                    resetContainerRFSVersions(activity);
+                    activity.runOnUiThread(() -> {
+                        if (!activity.isFinishing()) AppUtils.showToast(activity, "Đã cài đặt tệp hệ thống NovaBox");
+                    });
+                }
+                else {
+                    File versionFile = rootFS.getRFSVersionFile();
+                    if (versionFile.exists()) versionFile.delete();
+                    activity.runOnUiThread(() -> {
+                        if (!activity.isFinishing()) AppUtils.showToast(activity, R.string.unable_to_install_system_files);
+                    });
+                }
+            }
+            catch (Throwable error) {
+                File versionFile = rootFS.getRFSVersionFile();
+                if (versionFile.exists()) versionFile.delete();
+                android.util.Log.e("NovaBox", "RootFS installation failed", error);
+                activity.runOnUiThread(() -> {
+                    if (!activity.isFinishing()) AppUtils.showToast(activity, R.string.unable_to_install_system_files);
+                });
+            }
+            finally {
+                INSTALLING.set(false);
+                dialog.closeOnUiThread();
+            }
+        });
+    }
+
+"""
+    installer=installer[:install_start]+install_method+installer[install_end:]
     write(installer_path,installer)
 
 def patch_startup_flow(root: Path) -> None:
