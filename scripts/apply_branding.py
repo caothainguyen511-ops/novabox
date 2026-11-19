@@ -337,7 +337,7 @@ def patch_startup_flow(root: Path) -> None:
     if "novaBoxStartupTimeout" not in source:
         source=replace_once(source,field_anchor,fields,"NovaBox startup diagnostic fields")
 
-    flag_anchor="        final boolean[] flags = {false, shortcut != null || getIntent().hasExtra(\\"exec_path\\")};"
+    flag_anchor='        final boolean[] flags = {false, shortcut != null || getIntent().hasExtra("exec_path")};'
     flag_replacement=flag_anchor+"""
         novaBoxStartupTimeout = () -> {
             if (!novaBoxStartupWindowReady && !isFinishing() && !isDestroyed()) {
