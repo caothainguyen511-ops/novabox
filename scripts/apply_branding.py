@@ -316,6 +316,50 @@ def patch_locale(root: Path) -> None:
     source=source.replace("catch (JSONException e) {}", "catch (Exception ignored) {}", 1)
     write(manager,source)
 
+def patch_rootfs_validation(root: Path) -> None:
+    rootfs_path=root/"app/app/src/main/java/com/winlator/xenvironment/RootFS.java"
+    source=read(rootfs_path)
+    old="""    public boolean isValid() {
+        return rootDir.isDirectory() && getRFSVersionFile().exists();
+    }"""
+    new="""    public boolean hasRequiredBinaries() {
+        File box64 = new File(rootDir, "usr/local/bin/box64");
+        File wine = new File(rootDir, "opt/wine/bin/wine");
+        return box64.isFile() && box64.length() > 0 && box64.canExecute()
+            && wine.isFile() && wine.length() > 0 && wine.canExecute();
+    }
+
+    public boolean isValid() {
+        return rootDir.isDirectory() && getRFSVersionFile().exists() && hasRequiredBinaries();
+    }"""
+    if old in source:
+        source=source.replace(old,new,1)
+    elif new not in source:
+        raise RuntimeError("Could not locate RootFS validity check")
+    write(rootfs_path,source)
+
+    installer_path=root/"app/app/src/main/java/com/winlator/xenvironment/RootFSInstaller.java"
+    installer=read(installer_path)
+    old="""            if (success) {
+                rootFS.createRFSVersionFile(LATEST_VERSION);
+                resetContainerRFSVersions(activity);
+            }
+            else AppUtils.showToast(activity, R.string.unable_to_install_system_files);"""
+    new="""            if (success && rootFS.hasRequiredBinaries()) {
+                rootFS.createRFSVersionFile(LATEST_VERSION);
+                resetContainerRFSVersions(activity);
+            }
+            else {
+                File versionFile = rootFS.getRFSVersionFile();
+                if (versionFile.exists()) versionFile.delete();
+                AppUtils.showToast(activity, R.string.unable_to_install_system_files);
+            }"""
+    if old in installer:
+        installer=installer.replace(old,new,1)
+    elif new not in installer:
+        raise RuntimeError("Could not locate RootFS installation success handler")
+    write(installer_path,installer)
+
 def patch_startup_flow(root: Path) -> None:
     activity_path=root/"app/app/src/main/java/com/winlator/XServerDisplayActivity.java"
     source=read(activity_path)
@@ -532,7 +576,7 @@ def main() -> int:
     if len(sys.argv)!=2: raise SystemExit("Usage: apply_branding.py /path/to/winlator")
     root=Path(sys.argv[1]).resolve()
     if not (root/".git").exists(): raise SystemExit(f"Not a Git checkout: {root}")
-    patch_gradle(root); patch_manifest(root); patch_resources(root); patch_locale(root)
+    patch_gradle(root); patch_manifest(root); patch_resources(root); patch_locale(root); patch_rootfs_validation(root)
     apply_layouts(root); patch_startup_flow(root); patch_navigation(root)
     print(f"NovaBox overlay applied to {root}; upstream notices are retained.")
     return 0
